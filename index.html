@@ -3,814 +3,596 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pace Calculator</title>
+<title>PaceCalc</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0f14;
-    --surface: #14171f;
-    --surface2: #1c2030;
-    --border: #252a38;
-    --accent: #e8ff47;
-    --accent2: #47c8ff;
-    --text: #f0f2f8;
-    --muted: #5a6282;
-    --error: #ff6b6b;
-  }
+:root {
+  --bg: #0d0f14;
+  --surface: #14171f;
+  --surface2: #1c2030;
+  --border: #252a38;
+  --accent: #e8ff47;
+  --accent2: #47c8ff;
+  --text: #f0f2f8;
+  --muted: #5a6282;
+  --error: #ff6b6b;
+  --green: #4fffb0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Barlow', sans-serif; min-height: 100vh;
+  padding: 24px 16px 64px;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232,255,71,0.07) 0%, transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
+}
+.container { max-width: 540px; margin: 0 auto; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+header { text-align: center; margin-bottom: 32px; padding-top: 12px; }
+.eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+h1 { font-family:'Barlow Condensed',sans-serif; font-size:clamp(52px,12vw,72px); font-weight:900; line-height:0.9; letter-spacing:-1px; text-transform:uppercase; }
+h1 span { color:var(--accent); display:block; }
+.subtitle { margin-top:10px; font-size:13px; color:var(--muted); font-weight:300; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-    padding: 24px 16px 48px;
-    background-image: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232,255,71,0.07) 0%, transparent 70%),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
-  }
+/* CARD */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 20px; margin-bottom:12px; position:relative; overflow:hidden; }
+.card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(232,255,71,0.3),transparent); }
 
-  .container {
-    max-width: 520px;
-    margin: 0 auto;
-  }
+/* MODE TABS */
+.mode-tabs { display:flex; gap:6px; margin-bottom:20px; }
+.mode-tab { flex:1; padding:9px 4px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); transition:all 0.2s; }
+.mode-tab.active { background:rgba(232,255,71,0.12); border-color:rgba(232,255,71,0.35); color:var(--accent); }
 
-  header {
-    text-align: center;
-    margin-bottom: 36px;
-    padding-top: 16px;
-  }
+/* INPUT GROUPS */
+.input-group { margin-bottom:18px; }
+.label-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+label { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.badge { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:20px; background:rgba(232,255,71,0.12); color:var(--accent); border:1px solid rgba(232,255,71,0.2); opacity:0; transition:opacity 0.3s; }
+.badge.visible { opacity:1; }
+.fields-row { display:flex; gap:8px; }
+.field-wrap { flex:1; position:relative; }
+.field-wrap .unit { position:absolute; bottom:9px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); pointer-events:none; white-space:nowrap; }
+input[type="number"] { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:700; text-align:center; padding:12px 8px 26px; outline:none; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s; -moz-appearance:textfield; }
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; }
+input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(232,255,71,0.1); background:#1a1d27; }
+input.computed { border-color:rgba(71,200,255,0.4); background:rgba(71,200,255,0.05); color:var(--accent2); box-shadow:0 0 0 3px rgba(71,200,255,0.07); }
+input::placeholder { color:var(--muted); font-weight:300; }
 
-  .eyebrow {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 8px;
-    opacity: 0.9;
-  }
+.distance-wrap { position:relative; }
+.distance-wrap input { padding:18px 60px 18px 20px; font-size:34px; text-align:left; height:72px; }
+.distance-unit { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; color:var(--muted); }
+.speed-wrap { position:relative; }
+.speed-wrap input { padding:18px 70px 18px 20px; font-size:34px; text-align:left; height:72px; }
+.speed-unit { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; color:var(--muted); }
 
-  h1 {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: clamp(52px, 12vw, 72px);
-    font-weight: 900;
-    line-height: 0.9;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-    color: var(--text);
-  }
+.divider { display:flex; align-items:center; gap:12px; margin:16px 0; }
+.divider-line { flex:1; height:1px; background:var(--border); }
+.divider-text { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
 
-  h1 span {
-    color: var(--accent);
-    display: block;
-  }
+/* BUTTONS */
+.btn { width:100%; background:var(--accent); color:#0d0f14; border:none; border-radius:12px; padding:17px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:900; letter-spacing:3px; text-transform:uppercase; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s,background 0.15s; margin-top:8px; }
+.btn:hover { background:#f5ff80; box-shadow:0 8px 32px rgba(232,255,71,0.3); transform:translateY(-1px); }
+.btn:active { transform:translateY(0); }
+.btn-secondary { background:transparent; color:var(--muted); border:1px solid var(--border); margin-top:8px; padding:11px; font-size:12px; }
+.btn-secondary:hover { background:var(--surface2); color:var(--text); box-shadow:none; }
+.error-msg { background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); border-radius:10px; padding:12px 16px; font-size:13px; color:var(--error); margin-top:12px; display:none; }
 
-  .subtitle {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 300;
-    letter-spacing: 0.5px;
-  }
+/* RESULTS */
+.results-section { display:none; }
+.results-section.visible { display:block; animation:fadeUp 0.4s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.section-label { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; margin-top:4px; }
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px;
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
-  }
+/* STATS GRID */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.stat-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 12px; position:relative; overflow:hidden; }
+.stat-box.accent-box { border-color:rgba(232,255,71,0.3); background:rgba(232,255,71,0.04); }
+.stat-box.accent-box::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); }
+.stat-box.blue-box { border-color:rgba(71,200,255,0.3); background:rgba(71,200,255,0.04); }
+.stat-box.blue-box::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent2); }
+.stat-label { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.stat-value { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; line-height:1; }
+.stat-box.accent-box .stat-value { color:var(--accent); }
+.stat-box.blue-box .stat-value { color:var(--accent2); }
+.stat-unit { font-size:10px; font-weight:500; color:var(--muted); margin-top:3px; }
 
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(232,255,71,0.3), transparent);
-  }
+/* ZONE */
+.zone-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.zone-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.zone-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; }
+.zone-desc { font-size:12px; color:var(--muted); margin-top:2px; }
+.zone-bar-track { height:8px; border-radius:4px; background:var(--surface2); overflow:hidden; margin-bottom:6px; }
+.zone-bar-fill { height:100%; border-radius:4px; transition:width 0.5s ease; }
+.zone-ticks { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); letter-spacing:0.5px; }
 
-  .input-group {
-    margin-bottom: 20px;
-  }
+/* CALORIES */
+.cal-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; gap:12px; flex-wrap:wrap; }
+.cal-val { font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:700; color:var(--green); }
+.weight-control { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.weight-control label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.weight-input-wrap { display:flex; align-items:center; gap:6px; }
+.weight-input-wrap input { width:68px; padding:6px 8px; font-size:18px; text-align:center; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-family:'Barlow Condensed',sans-serif; }
+.wunit { font-size:11px; color:var(--muted); font-weight:600; }
 
-  .input-group:last-of-type { margin-bottom: 0; }
+/* RACES */
+.races-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
+.race-row { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-bottom:1px solid var(--border); transition:background 0.15s; }
+.race-row:last-child { border-bottom:none; }
+.race-row:hover { background:var(--surface2); }
+.race-info { display:flex; align-items:center; gap:10px; }
+.race-icon { width:30px; height:30px; border-radius:8px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:13px; }
+.race-name { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; }
+.race-dist { font-size:11px; color:var(--muted); margin-top:1px; }
+.race-time { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; color:var(--accent2); letter-spacing:1px; }
 
-  .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
+/* SPLITS */
+.splits-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
+.splits-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+.splits-title { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.splits-toggle { display:flex; gap:4px; }
+.split-btn { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+.split-btn.active { background:rgba(232,255,71,0.12); border-color:rgba(232,255,71,0.3); color:var(--accent); }
+.splits-table { width:100%; border-collapse:collapse; }
+.splits-table th { text-align:left; padding:8px 16px; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); }
+.splits-table th:not(:first-child) { text-align:right; }
+.splits-table td { padding:9px 16px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; border-bottom:1px solid rgba(37,42,56,0.5); }
+.splits-table tr:last-child td { border-bottom:none; }
+.splits-table td:not(:first-child) { text-align:right; }
+.splits-table td:first-child { color:var(--muted); font-size:13px; }
+.splits-table td.elapsed { color:var(--accent2); }
 
-  label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
+/* CONVERSION TABLE */
+.conv-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; }
+.conv-scroll { overflow-x:auto; }
+.conv-table { width:100%; border-collapse:collapse; }
+.conv-table th { text-align:center; padding:8px 8px; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); }
+.conv-table td { padding:8px 8px; text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; border-bottom:1px solid rgba(37,42,56,0.5); }
+.conv-table tr:last-child td { border-bottom:none; }
+.conv-table tr.current-row td { background:rgba(232,255,71,0.07); color:var(--accent); }
+.conv-table .col-kmh { color:var(--accent2); }
 
-  .badge {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: rgba(232,255,71,0.12);
-    color: var(--accent);
-    border: 1px solid rgba(232,255,71,0.2);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+/* COLLAPSIBLE */
+.collapsible-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; padding:2px 0 10px; }
+.collapsible-header .chevron { transition:transform 0.25s; font-size:12px; color:var(--muted); }
+.collapsible-header.open .chevron { transform:rotate(180deg); }
+.collapsible-body { overflow:hidden; }
 
-  .badge.visible { opacity: 1; }
-
-  .fields-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  .field-wrap {
-    flex: 1;
-    position: relative;
-  }
-
-  .field-wrap .unit {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  input[type="number"],
-  input[type="text"] {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    padding: 14px 8px 24px;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-    -moz-appearance: textfield;
-  }
-
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(232,255,71,0.1);
-    background: #1a1d27;
-  }
-
-  input.computed {
-    border-color: rgba(71,200,255,0.4);
-    background: rgba(71,200,255,0.05);
-    color: var(--accent2);
-    box-shadow: 0 0 0 3px rgba(71,200,255,0.07);
-  }
-
-  input.has-value:not(.computed) {
-    border-color: rgba(232,255,71,0.3);
-  }
-
-  input::placeholder { color: var(--muted); font-weight: 300; }
-
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0;
-  }
-
-  .divider-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .divider-text {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  /* Distance input */
-  .distance-wrap {
-    position: relative;
-  }
-
-  .distance-wrap input {
-    padding: 20px 60px 20px 20px;
-    font-size: 36px;
-    text-align: left;
-    height: 76px;
-  }
-
-  .distance-unit {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: var(--muted);
-  }
-
-  .btn {
-    width: 100%;
-    background: var(--accent);
-    color: #0d0f14;
-    border: none;
-    border-radius: 12px;
-    padding: 18px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 900;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-    margin-top: 8px;
-  }
-
-  .btn:hover {
-    background: #f5ff80;
-    box-shadow: 0 8px 32px rgba(232,255,71,0.3);
-    transform: translateY(-1px);
-  }
-
-  .btn:active { transform: translateY(0); }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    margin-top: 8px;
-    padding: 12px;
-    font-size: 13px;
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface2);
-    color: var(--text);
-    box-shadow: none;
-  }
-
-  .error-msg {
-    background: rgba(255,107,107,0.1);
-    border: 1px solid rgba(255,107,107,0.3);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--error);
-    margin-top: 12px;
-    display: none;
-  }
-
-  .results-section {
-    display: none;
-  }
-
-  .results-section.visible {
-    display: block;
-    animation: fadeUp 0.4s ease;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .section-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .stat-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-box.highlight {
-    border-color: rgba(232,255,71,0.3);
-    background: rgba(232,255,71,0.04);
-  }
-
-  .stat-box.highlight::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-  }
-
-  .stat-label {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .stat-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .stat-box.highlight .stat-value { color: var(--accent); }
-
-  .stat-unit {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  .races-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  .race-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-  }
-
-  .race-row:last-child { border-bottom: none; }
-  .race-row:hover { background: var(--surface2); }
-
-  .race-info { display: flex; align-items: center; gap: 12px; }
-
-  .race-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: var(--surface2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-
-  .race-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-
-  .race-dist {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 1px;
-  }
-
-  .race-time {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--accent2);
-    letter-spacing: 1px;
-  }
-
-  footer {
-    text-align: center;
-    margin-top: 32px;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.5px;
-  }
-
-  @media (max-width: 400px) {
-    .stats-grid { grid-template-columns: 1fr; }
-  }
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr}
+  .conv-table td,.conv-table th{font-size:12px;padding:7px 5px}
+}
 </style>
 </head>
 <body>
 <div class="container">
 
-  <header>
-    <div class="eyebrow">Running Tool</div>
-    <h1>Pace<span>Calc</span></h1>
-    <p class="subtitle">Enter any two values — the third is calculated for you</p>
-  </header>
+<header>
+  <div class="eyebrow">Running Tool</div>
+  <h1>Pace<span>Calc</span></h1>
+  <p class="subtitle">Enter any two values — the third is calculated</p>
+</header>
 
-  <!-- INPUT CARD -->
-  <div class="card">
-
-    <!-- DISTANCE -->
-    <div class="input-group">
-      <div class="label-row">
-        <label>Distance</label>
-        <span class="badge" id="badge-distance">calculated</span>
-      </div>
-      <div class="distance-wrap">
-        <input type="number" id="dist" placeholder="0.00" min="0" step="0.01">
-        <span class="distance-unit">km</span>
-      </div>
-    </div>
-
-    <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
-
-    <!-- TIME -->
-    <div class="input-group">
-      <div class="label-row">
-        <label>Time</label>
-        <span class="badge" id="badge-time">calculated</span>
-      </div>
-      <div class="fields-row">
-        <div class="field-wrap">
-          <input type="number" id="time-h" placeholder="00" min="0" max="99">
-          <span class="unit">hh</span>
-        </div>
-        <div class="field-wrap">
-          <input type="number" id="time-m" placeholder="00" min="0" max="59">
-          <span class="unit">mm</span>
-        </div>
-        <div class="field-wrap">
-          <input type="number" id="time-s" placeholder="00" min="0" max="59">
-          <span class="unit">ss</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
-
-    <!-- PACE -->
-    <div class="input-group">
-      <div class="label-row">
-        <label>Pace</label>
-        <span class="badge" id="badge-pace">calculated</span>
-      </div>
-      <div class="fields-row">
-        <div class="field-wrap">
-          <input type="number" id="pace-m" placeholder="00" min="0" max="99">
-          <span class="unit">min</span>
-        </div>
-        <div class="field-wrap">
-          <input type="number" id="pace-s" placeholder="00" min="0" max="59">
-          <span class="unit">sec</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="error-msg" class="error-msg"></div>
-
-    <button class="btn" onclick="calculate()">Calculate</button>
-    <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+<!-- INPUT CARD -->
+<div class="card">
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-pace"  onclick="setMode('pace')">Pace (min/km)</button>
+    <button class="mode-tab"        id="tab-speed" onclick="setMode('speed')">Speed (km/h)</button>
   </div>
 
-  <!-- RESULTS -->
-  <div class="results-section" id="results">
+  <!-- Distance -->
+  <div class="input-group">
+    <div class="label-row"><label>Distance</label><span class="badge" id="badge-distance">calculated</span></div>
+    <div class="distance-wrap">
+      <input type="number" id="dist" placeholder="0.00" min="0" step="0.01">
+      <span class="distance-unit">km</span>
+    </div>
+  </div>
 
-    <p class="section-label" style="margin-top:8px;">Summary</p>
+  <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
 
-    <div class="stats-grid">
-      <div class="stat-box highlight">
-        <div class="stat-label">Pace</div>
-        <div class="stat-value" id="res-pace">—</div>
-        <div class="stat-unit">min / km</div>
+  <!-- Time -->
+  <div class="input-group">
+    <div class="label-row"><label>Time</label><span class="badge" id="badge-time">calculated</span></div>
+    <div class="fields-row">
+      <div class="field-wrap"><input type="number" id="time-h" placeholder="00" min="0" max="99"><span class="unit">hh</span></div>
+      <div class="field-wrap"><input type="number" id="time-m" placeholder="00" min="0" max="59"><span class="unit">mm</span></div>
+      <div class="field-wrap"><input type="number" id="time-s" placeholder="00" min="0" max="59"><span class="unit">ss</span></div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
+
+  <!-- Pace (min/km) -->
+  <div class="input-group" id="pace-group">
+    <div class="label-row"><label>Pace</label><span class="badge" id="badge-pace">calculated</span></div>
+    <div class="fields-row">
+      <div class="field-wrap"><input type="number" id="pace-m" placeholder="00" min="0" max="99"><span class="unit">min</span></div>
+      <div class="field-wrap"><input type="number" id="pace-s" placeholder="00" min="0" max="59"><span class="unit">sec</span></div>
+    </div>
+  </div>
+
+  <!-- Speed (km/h) -->
+  <div class="input-group" id="speed-group" style="display:none">
+    <div class="label-row"><label>Speed</label><span class="badge" id="badge-speed">calculated</span></div>
+    <div class="speed-wrap">
+      <input type="number" id="speed-kmh" placeholder="0.0" min="0" step="0.1">
+      <span class="speed-unit">km/h</span>
+    </div>
+  </div>
+
+  <div id="error-msg" class="error-msg"></div>
+  <button class="btn" onclick="calculate()">Calculate</button>
+  <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+</div>
+
+<!-- RESULTS -->
+<div class="results-section" id="results">
+
+  <p class="section-label">Summary</p>
+  <div class="stats-grid">
+    <div class="stat-box accent-box"><div class="stat-label">Pace</div><div class="stat-value" id="res-pace">—</div><div class="stat-unit">min / km</div></div>
+    <div class="stat-box blue-box"><div class="stat-label">Speed</div><div class="stat-value" id="res-speed">—</div><div class="stat-unit">km / h</div></div>
+    <div class="stat-box"><div class="stat-label">Distance</div><div class="stat-value" id="res-dist">—</div><div class="stat-unit">kilometers</div></div>
+    <div class="stat-box"><div class="stat-label">Total Time</div><div class="stat-value" id="res-time">—</div><div class="stat-unit">hh : mm : ss</div></div>
+  </div>
+
+  <!-- Effort Zone -->
+  <div class="zone-card">
+    <div class="zone-header">
+      <div>
+        <div class="stat-label">Effort Zone</div>
+        <div class="zone-name" id="zone-name">—</div>
+        <div class="zone-desc" id="zone-desc">—</div>
       </div>
-      <div class="stat-box highlight">
-        <div class="stat-label">Speed</div>
-        <div class="stat-value" id="res-speed">—</div>
-        <div class="stat-unit">km / h</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Distance</div>
-        <div class="stat-value" id="res-dist">—</div>
-        <div class="stat-unit">kilometers</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Total Time</div>
-        <div class="stat-value" id="res-time">—</div>
-        <div class="stat-unit">hh : mm : ss</div>
+      <div style="text-align:right">
+        <div class="stat-label">Est. Heart Rate</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700" id="zone-hr">—</div>
+        <div class="stat-unit">bpm</div>
       </div>
     </div>
+    <div class="zone-bar-track"><div class="zone-bar-fill" id="zone-bar" style="width:0%"></div></div>
+    <div class="zone-ticks"><span>Recovery</span><span>Easy</span><span>Aerobic</span><span>Tempo</span><span>Max</span></div>
+  </div>
 
-    <p class="section-label">Race Predictions</p>
+  <!-- Calories -->
+  <div class="cal-row">
+    <div>
+      <div class="stat-label">Calories Burned</div>
+      <div class="cal-val" id="res-cal">—</div>
+      <div class="stat-unit">kcal (estimated)</div>
+    </div>
+    <div class="weight-control">
+      <label for="weight-kg">Your weight</label>
+      <div class="weight-input-wrap">
+        <input type="number" id="weight-kg" value="70" min="30" max="200" step="1" oninput="recalcCalories()">
+        <span class="wunit">kg</span>
+      </div>
+    </div>
+  </div>
 
+  <!-- Race Predictions -->
+  <div class="collapsible-header open" onclick="toggleSection(this,'races-body')">
+    <p class="section-label" style="margin:0">Race Predictions</p><span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body" id="races-body">
     <div class="races-card">
-      <div class="race-row">
-        <div class="race-info">
-          <div class="race-icon">🏃</div>
-          <div>
-            <div class="race-name">5K</div>
-            <div class="race-dist">5.0 km</div>
-          </div>
-        </div>
-        <div class="race-time" id="pred-5k">—</div>
-      </div>
-      <div class="race-row">
-        <div class="race-info">
-          <div class="race-icon">🏃</div>
-          <div>
-            <div class="race-name">10K</div>
-            <div class="race-dist">10.0 km</div>
-          </div>
-        </div>
-        <div class="race-time" id="pred-10k">—</div>
-      </div>
-      <div class="race-row">
-        <div class="race-info">
-          <div class="race-icon">🥈</div>
-          <div>
-            <div class="race-name">Half Marathon</div>
-            <div class="race-dist">21.1 km</div>
-          </div>
-        </div>
-        <div class="race-time" id="pred-half">—</div>
-      </div>
-      <div class="race-row">
-        <div class="race-info">
-          <div class="race-icon">🏅</div>
-          <div>
-            <div class="race-name">Marathon</div>
-            <div class="race-dist">42.2 km</div>
-          </div>
-        </div>
-        <div class="race-time" id="pred-full">—</div>
-      </div>
+      <div class="race-row"><div class="race-info"><div class="race-icon">🏃</div><div><div class="race-name">5K</div><div class="race-dist">5.0 km</div></div></div><div class="race-time" id="pred-5k">—</div></div>
+      <div class="race-row"><div class="race-info"><div class="race-icon">🏃</div><div><div class="race-name">10K</div><div class="race-dist">10.0 km</div></div></div><div class="race-time" id="pred-10k">—</div></div>
+      <div class="race-row"><div class="race-info"><div class="race-icon">🥈</div><div><div class="race-name">Half Marathon</div><div class="race-dist">21.1 km</div></div></div><div class="race-time" id="pred-half">—</div></div>
+      <div class="race-row"><div class="race-info"><div class="race-icon">🏅</div><div><div class="race-name">Marathon</div><div class="race-dist">42.2 km</div></div></div><div class="race-time" id="pred-full">—</div></div>
     </div>
-
   </div>
 
-  <footer>Keep moving forward ↑</footer>
+  <!-- Splits -->
+  <div class="collapsible-header open" style="margin-top:12px" onclick="toggleSection(this,'splits-body')">
+    <p class="section-label" style="margin:0">Km Splits</p><span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body" id="splits-body">
+    <div class="splits-card">
+      <div class="splits-header">
+        <span class="splits-title">Per-Km Breakdown</span>
+        <div class="splits-toggle">
+          <button class="split-btn active" id="split-btn-1" onclick="setSplitInterval(1)">1 km</button>
+          <button class="split-btn" id="split-btn-5" onclick="setSplitInterval(5)">5 km</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="splits-table">
+          <thead><tr><th>Split</th><th>Distance</th><th>Split Time</th><th>Elapsed</th></tr></thead>
+          <tbody id="splits-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
+  <!-- Pace Conversion Table -->
+  <div class="collapsible-header open" style="margin-top:12px" onclick="toggleSection(this,'conv-body')">
+    <p class="section-label" style="margin:0">Pace Conversion Table</p><span class="chevron">▼</span>
+  </div>
+  <div class="collapsible-body" id="conv-body">
+    <div class="conv-card">
+      <div class="conv-scroll">
+        <table class="conv-table">
+          <thead><tr><th>min/km</th><th>km/h</th><th>5K</th><th>10K</th><th>Half</th><th>Full</th></tr></thead>
+          <tbody id="conv-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /results -->
+
+<footer style="text-align:center;margin-top:28px;font-size:11px;color:var(--muted)">Keep moving forward ↑</footer>
 </div>
 
 <script>
-  const inputs = {
-    dist: document.getElementById('dist'),
-    timeH: document.getElementById('time-h'),
-    timeM: document.getElementById('time-m'),
-    timeS: document.getElementById('time-s'),
-    paceM: document.getElementById('pace-m'),
-    paceS: document.getElementById('pace-s'),
+// ── STATE ──
+let currentMode = 'pace';
+let lastPaceSec = null, lastDist = null, lastTimeSec = null;
+let splitInterval = 1;
+
+// ── INPUTS ──
+const inp = {
+  dist:   () => document.getElementById('dist'),
+  timeH:  () => document.getElementById('time-h'),
+  timeM:  () => document.getElementById('time-m'),
+  timeS:  () => document.getElementById('time-s'),
+  paceM:  () => document.getElementById('pace-m'),
+  paceS:  () => document.getElementById('pace-s'),
+  speed:  () => document.getElementById('speed-kmh'),
+  weight: () => document.getElementById('weight-kg'),
+};
+
+// ── UTILS ──
+function val(el) { const v = parseFloat(el.value); return isNaN(v) ? null : v; }
+function pad(n) { return String(n).padStart(2,'0'); }
+function formatTime(sec) {
+  sec = Math.round(sec);
+  return `${pad(Math.floor(sec/3600))}:${pad(Math.floor((sec%3600)/60))}:${pad(sec%60)}`;
+}
+function formatPace(sec) {
+  sec = Math.round(sec);
+  return `${Math.floor(sec/60)}:${pad(sec%60)}`;
+}
+function showError(msg) { const e=document.getElementById('error-msg'); e.textContent=msg; e.style.display='block'; }
+function hideError()     { document.getElementById('error-msg').style.display='none'; }
+function clearStyles()   { ['dist','time-h','time-m','time-s','pace-m','pace-s','speed-kmh'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('computed'); }); }
+function updateBadges(calc) {
+  ['distance','time','pace','speed'].forEach(k=>{ const b=document.getElementById('badge-'+k); if(b) b.classList.toggle('visible', calc===k); });
+}
+
+// ── MODE ──
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('tab-pace').classList.toggle('active', mode==='pace');
+  document.getElementById('tab-speed').classList.toggle('active', mode==='speed');
+  document.getElementById('pace-group').style.display  = mode==='pace'  ? '' : 'none';
+  document.getElementById('speed-group').style.display = mode==='speed' ? '' : 'none';
+  if (mode==='pace')  { inp.speed().value=''; inp.speed().classList.remove('computed'); }
+  else                { inp.paceM().value=''; inp.paceS().value=''; inp.paceM().classList.remove('computed'); inp.paceS().classList.remove('computed'); }
+  hideError();
+}
+
+// ── DATA HELPERS ──
+function hasDistance() { return val(inp.dist()) !== null; }
+function hasTime()     { return val(inp.timeH())!==null || val(inp.timeM())!==null || val(inp.timeS())!==null; }
+function hasPace() {
+  if (currentMode==='speed') { const s=val(inp.speed()); return s!==null && s>0; }
+  const m=val(inp.paceM()), s=val(inp.paceS());
+  if (m===null && s===null) return false;
+  return (m||0)*60+(s||0)>0;
+}
+function getTimeSec() {
+  if (!hasTime()) return null;
+  return (val(inp.timeH())||0)*3600+(val(inp.timeM())||0)*60+(val(inp.timeS())||0);
+}
+function getPaceSec() {
+  if (currentMode==='speed') { const k=val(inp.speed()); return (k&&k>0) ? 3600/k : null; }
+  if (!hasPace()) return null;
+  const m=val(inp.paceM())||0, sRaw=val(inp.paceS())||0;
+  if (sRaw>59) { showError('Pace seconds must be 0–59.'); return null; }
+  return m*60+sRaw;
+}
+
+// ── EFFORT ZONES ──
+// Zones defined by pace (min/km) — slower = lower zone
+const ZONES = [
+  { name:'Recovery',  desc:'Very easy, active recovery',      color:'#4fffb0', paceMin:8.0,  hrLo:50, hrHi:60  },
+  { name:'Easy',      desc:'Conversational, fat burning',     color:'#47c8ff', paceMin:6.5,  hrLo:60, hrHi:70  },
+  { name:'Aerobic',   desc:'Comfortable, endurance base',     color:'#e8ff47', paceMin:5.5,  hrLo:70, hrHi:80  },
+  { name:'Tempo',     desc:'Comfortably hard, lactate zone',  color:'#ffb347', paceMin:4.5,  hrLo:80, hrHi:88  },
+  { name:'Threshold', desc:'Hard — sustainable ~1 hour',      color:'#ff7c7c', paceMin:3.5,  hrLo:88, hrHi:95  },
+  { name:'Max',       desc:'All-out, race effort',            color:'#ff4747', paceMin:0,    hrLo:95, hrHi:100 },
+];
+
+function renderZone(paceSec) {
+  const paceMin = paceSec / 60;
+  let zone = ZONES[ZONES.length-1];
+  for (const z of ZONES) { if (paceMin >= z.paceMin) { zone=z; break; } }
+  const zIdx = ZONES.indexOf(zone);
+  const pct  = Math.min(98, Math.round(((zIdx+0.6)/ZONES.length)*100));
+  const hrEst = Math.round(190 * (zone.hrLo + zone.hrHi) / 2 / 100);
+  document.getElementById('zone-name').textContent = zone.name;
+  document.getElementById('zone-name').style.color = zone.color;
+  document.getElementById('zone-desc').textContent = zone.desc;
+  document.getElementById('zone-hr').textContent   = hrEst;
+  document.getElementById('zone-hr').style.color   = zone.color;
+  const bar = document.getElementById('zone-bar');
+  bar.style.width      = pct+'%';
+  bar.style.background = zone.color;
+}
+
+// ── CALORIES ──
+// MET formula: running MET scales with speed
+function calcCal(paceSec, distKm, weightKg) {
+  const speedKmh = 3600 / paceSec;
+  const MET = Math.max(6, 6.5 + (speedKmh - 8) * 0.35);
+  const timeH = (distKm * paceSec) / 3600;
+  return Math.round(MET * weightKg * timeH);
+}
+function recalcCalories() {
+  if (lastPaceSec===null || lastDist===null) return;
+  const w = parseFloat(inp.weight().value)||70;
+  document.getElementById('res-cal').textContent = calcCal(lastPaceSec, lastDist, w).toLocaleString();
+}
+
+// ── SPLITS ──
+function setSplitInterval(n) {
+  splitInterval=n;
+  document.getElementById('split-btn-1').classList.toggle('active', n===1);
+  document.getElementById('split-btn-5').classList.toggle('active', n===5);
+  if (lastPaceSec!==null && lastDist!==null) renderSplits(lastPaceSec, lastDist);
+}
+
+function renderSplits(paceSec, dist) {
+  const tbody = document.getElementById('splits-rows');
+  tbody.innerHTML='';
+  const ivl = splitInterval;
+  const checkpoints = [];
+  for (let k=ivl; k<dist; k+=ivl) checkpoints.push(parseFloat(k.toFixed(4)));
+  checkpoints.push(parseFloat(dist.toFixed(4)));
+  let prev=0;
+  checkpoints.forEach(km => {
+    const seg = km-prev;
+    const label = km>=dist ? 'Finish' : `${km} km`;
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${label}</td><td>${seg.toFixed(ivl===1?0:2)} km</td><td>${formatTime(seg*paceSec)}</td><td class="elapsed">${formatTime(km*paceSec)}</td>`;
+    tbody.appendChild(tr);
+    prev=km;
+  });
+}
+
+// ── CONVERSION TABLE ──
+function renderConvTable(currentPaceSec) {
+  const tbody = document.getElementById('conv-rows');
+  tbody.innerHTML='';
+  const currentR = Math.round(currentPaceSec/15)*15;
+  for (let s=180; s<=540; s+=15) {
+    const tr = document.createElement('tr');
+    if (s===currentR) tr.classList.add('current-row');
+    tr.innerHTML=`<td>${formatPace(s)}</td><td class="col-kmh">${(3600/s).toFixed(1)}</td><td>${formatTime(5*s)}</td><td>${formatTime(10*s)}</td><td>${formatTime(21.1*s)}</td><td>${formatTime(42.2*s)}</td>`;
+    tbody.appendChild(tr);
+  }
+  setTimeout(()=>{ const r=tbody.querySelector('.current-row'); if(r) r.scrollIntoView({block:'nearest'}); },120);
+}
+
+// ── COLLAPSIBLE ──
+function toggleSection(hdr, bodyId) {
+  hdr.classList.toggle('open');
+  const b = document.getElementById(bodyId);
+  if (hdr.classList.contains('open')) { b.style.maxHeight=b.scrollHeight+'px'; b.style.opacity='1'; }
+  else                                { b.style.maxHeight='0'; b.style.opacity='0'; }
+}
+document.querySelectorAll('.collapsible-body').forEach(b=>{
+  b.style.maxHeight='3000px'; b.style.transition='max-height 0.35s ease,opacity 0.25s ease';
+  b.style.overflow='hidden'; b.style.opacity='1';
+});
+
+// ── CALCULATE ──
+function calculate() {
+  hideError(); clearStyles();
+  const d=hasDistance(), t=hasTime(), p=hasPace();
+  if ([d,t,p].filter(Boolean).length < 2) { showError('Please fill in at least two fields.'); return; }
+
+  let dist, timeSec, paceSec;
+
+  const setPaceInputs = (ps) => {
+    if (currentMode==='pace') {
+      inp.paceM().value = Math.floor(ps/60);
+      inp.paceS().value = pad(Math.round(ps%60));
+      inp.paceM().classList.add('computed'); inp.paceS().classList.add('computed');
+      updateBadges('pace');
+    } else {
+      inp.speed().value = (3600/ps).toFixed(2);
+      inp.speed().classList.add('computed');
+      updateBadges('speed');
+    }
   };
 
-  // Track computed fields for styling
-  let computedFields = [];
-
-  function val(el) {
-    const v = parseFloat(el.value);
-    return isNaN(v) ? null : v;
+  if (d && t && !p) {
+    dist=val(inp.dist()); timeSec=getTimeSec();
+    if (dist<=0) { showError('Distance must be > 0.'); return; }
+    paceSec=timeSec/dist;
+    setPaceInputs(paceSec);
+  } else if (d && p && !t) {
+    dist=val(inp.dist()); paceSec=getPaceSec();
+    if (paceSec===null) return;
+    if (dist<=0) { showError('Distance must be > 0.'); return; }
+    timeSec=dist*paceSec;
+    inp.timeH().value=Math.floor(timeSec/3600);
+    inp.timeM().value=pad(Math.floor((timeSec%3600)/60));
+    inp.timeS().value=pad(Math.round(timeSec%60));
+    inp.timeH().classList.add('computed'); inp.timeM().classList.add('computed'); inp.timeS().classList.add('computed');
+    updateBadges('time');
+  } else if (t && p && !d) {
+    timeSec=getTimeSec(); paceSec=getPaceSec();
+    if (paceSec===null) return;
+    if (paceSec<=0) { showError('Pace/speed must be > 0.'); return; }
+    dist=timeSec/paceSec;
+    inp.dist().value=dist.toFixed(2); inp.dist().classList.add('computed');
+    updateBadges('distance');
+  } else if (d && t && p) {
+    dist=val(inp.dist()); timeSec=getTimeSec();
+    if (dist<=0) { showError('Distance must be > 0.'); return; }
+    paceSec=timeSec/dist;
+    setPaceInputs(paceSec);
   }
 
-  function hasDistance() { return val(inputs.dist) !== null; }
-  function hasTime() {
-    return val(inputs.timeH) !== null || val(inputs.timeM) !== null || val(inputs.timeS) !== null;
-  }
-  function hasPace() {
-    // Pace is "provided" only if at least one field is filled AND the total is > 0
-    const m = val(inputs.paceM);
-    const s = val(inputs.paceS);
-    if (m === null && s === null) return false;
-    return (m || 0) * 60 + (s || 0) > 0;
-  }
+  dist    = dist    ?? val(inp.dist());
+  timeSec = timeSec ?? getTimeSec();
+  paceSec = paceSec ?? getPaceSec();
+  if (!paceSec || paceSec<=0) { showError('Pace is invalid.'); return; }
 
-  function getTimeSeconds() {
-    const h = val(inputs.timeH) || 0;
-    const m = val(inputs.timeM) || 0;
-    const s = val(inputs.timeS) || 0;
-    if (!hasTime()) return null;
-    return h * 3600 + m * 60 + s;
-  }
+  lastPaceSec=paceSec; lastDist=dist; lastTimeSec=timeSec;
 
-  function getPaceSeconds() {
-    if (!hasPace()) return null;
-    const m = val(inputs.paceM) || 0;
-    // Bug fix: clamp seconds to 0–59; values like 75 would silently corrupt pace
-    const sRaw = val(inputs.paceS) || 0;
-    if (sRaw > 59) {
-      showError('Pace seconds must be between 0 and 59.');
-      return null;
-    }
-    return m * 60 + sRaw;
-  }
+  // Summary
+  document.getElementById('res-pace').textContent  = formatPace(paceSec);
+  document.getElementById('res-speed').textContent = (3600/paceSec).toFixed(2);
+  document.getElementById('res-dist').textContent  = dist ? dist.toFixed(2) : '—';
+  document.getElementById('res-time').textContent  = timeSec ? formatTime(timeSec) : '—';
 
-  function formatTime(totalSeconds) {
-    // Bug fix: use Math.floor on seconds to avoid 60s rollover from floating point
-    totalSeconds = Math.round(totalSeconds);
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
+  // Zone
+  renderZone(paceSec);
 
-  function formatPace(paceSeconds) {
-    // Bug fix: round total seconds first, THEN split — prevents "4:60" display
-    paceSeconds = Math.round(paceSeconds);
-    const m = Math.floor(paceSeconds / 60);
-    const s = paceSeconds % 60;
-    return `${m}:${String(s).padStart(2,'0')}`;
-  }
+  // Calories
+  const w = parseFloat(inp.weight().value)||70;
+  document.getElementById('res-cal').textContent = dist ? calcCal(paceSec, dist, w).toLocaleString() : '—';
 
-  function setFieldValue(field, value, isComputed) {
-    field.value = value;
-    if (isComputed) {
-      field.classList.add('computed');
-      field.classList.remove('has-value');
-    } else {
-      field.classList.add('has-value');
-    }
-  }
-
-  function showError(msg) {
-    const el = document.getElementById('error-msg');
-    el.textContent = msg;
-    el.style.display = 'block';
-  }
-
-  function hideError() {
-    document.getElementById('error-msg').style.display = 'none';
-  }
-
-  function clearComputedStyles() {
-    Object.values(inputs).forEach(el => el.classList.remove('computed'));
-  }
-
-  function updateBadges(calculated) {
-    ['distance','time','pace'].forEach(k => {
-      const badge = document.getElementById(`badge-${k}`);
-      badge.classList.toggle('visible', calculated === k);
-    });
-  }
-
-  function calculate() {
-    hideError();
-    clearComputedStyles();
-
-    const d = hasDistance();
-    const t = hasTime();
-    const p = hasPace();
-
-    const provided = [d, t, p].filter(Boolean).length;
-
-    if (provided < 2) {
-      showError('Please fill in at least two of the three fields (Distance, Time, Pace).');
-      return;
-    }
-
-    let dist, timeSec, paceSec;
-
-    if (d && t && !p) {
-      // Calculate pace
-      dist = val(inputs.dist);
-      timeSec = getTimeSeconds();
-      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
-      paceSec = timeSec / dist;
-      const pm = Math.floor(paceSec / 60);
-      const ps = Math.round(paceSec % 60);
-      inputs.paceM.value = pm;
-      inputs.paceS.value = String(ps).padStart(2,'0');
-      inputs.paceM.classList.add('computed');
-      inputs.paceS.classList.add('computed');
-      updateBadges('pace');
-    } else if (d && p && !t) {
-      // Calculate time
-      dist = val(inputs.dist);
-      paceSec = getPaceSeconds();
-      if (paceSec === null) return; // validation error already shown
-      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
-      timeSec = dist * paceSec;
-      const h = Math.floor(timeSec / 3600);
-      const m = Math.floor((timeSec % 3600) / 60);
-      const s = Math.round(timeSec % 60);
-      inputs.timeH.value = h;
-      inputs.timeM.value = String(m).padStart(2,'0');
-      inputs.timeS.value = String(s).padStart(2,'0');
-      inputs.timeH.classList.add('computed');
-      inputs.timeM.classList.add('computed');
-      inputs.timeS.classList.add('computed');
-      updateBadges('time');
-    } else if (t && p && !d) {
-      // Calculate distance
-      timeSec = getTimeSeconds();
-      paceSec = getPaceSeconds();
-      if (paceSec === null) return; // validation error already shown
-      if (paceSec <= 0) { showError('Pace must be greater than 0.'); return; }
-      dist = timeSec / paceSec;
-      inputs.dist.value = dist.toFixed(2);
-      inputs.dist.classList.add('computed');
-      updateBadges('distance');
-    } else if (d && t && p) {
-      // All three provided — use dist + time, recalculate pace
-      dist = val(inputs.dist);
-      timeSec = getTimeSeconds();
-      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
-      paceSec = timeSec / dist;
-      const pm = Math.floor(paceSec / 60);
-      const ps = Math.round(paceSec % 60);
-      inputs.paceM.value = pm;
-      inputs.paceS.value = String(ps).padStart(2,'0');
-      inputs.paceM.classList.add('computed');
-      inputs.paceS.classList.add('computed');
-      updateBadges('pace');
-    }
-
-    // Now render results
-    dist = dist ?? val(inputs.dist);
-    timeSec = timeSec ?? getTimeSeconds();
-    paceSec = paceSec ?? getPaceSeconds();
-
-    if (!paceSec || paceSec <= 0) { showError('Something went wrong — pace is invalid.'); return; }
-
-    const speedKmh = 3600 / paceSec;
-
-    document.getElementById('res-pace').textContent = formatPace(paceSec);
-    document.getElementById('res-speed').textContent = speedKmh.toFixed(2);
-    document.getElementById('res-dist').textContent = dist.toFixed(2);
-    document.getElementById('res-time').textContent = formatTime(timeSec);
-
-    // Race predictions
-    const races = [
-      { id: 'pred-5k',   km: 5.0 },
-      { id: 'pred-10k',  km: 10.0 },
-      { id: 'pred-half', km: 21.1 },
-      { id: 'pred-full', km: 42.2 },
-    ];
-
-    races.forEach(r => {
-      const t = r.km * paceSec;
-      document.getElementById(r.id).textContent = formatTime(t);
-    });
-
-    document.getElementById('results').classList.add('visible');
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  function clearAll() {
-    Object.values(inputs).forEach(el => {
-      el.value = '';
-      el.classList.remove('computed', 'has-value');
-    });
-    hideError();
-    updateBadges(null);
-    document.getElementById('results').classList.remove('visible');
-  }
-
-  // Allow Enter key to calculate
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') calculate();
+  // Race predictions
+  [['pred-5k',5],['pred-10k',10],['pred-half',21.1],['pred-full',42.2]].forEach(([id,km])=>{
+    document.getElementById(id).textContent=formatTime(km*paceSec);
   });
 
-  // Auto-pad seconds on blur
-  [inputs.timeS, inputs.paceS].forEach(el => {
-    el.addEventListener('blur', () => {
-      if (el.value !== '' && el.value.length === 1) {
-        el.value = '0' + el.value;
-      }
-    });
+  // Splits
+  if (dist) renderSplits(paceSec, dist);
+  else document.getElementById('splits-rows').innerHTML='<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px">Distance needed for splits</td></tr>';
+
+  // Conversion table
+  renderConvTable(paceSec);
+
+  document.getElementById('results').classList.add('visible');
+  setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ── CLEAR ──
+function clearAll() {
+  ['dist','time-h','time-m','time-s','pace-m','pace-s','speed-kmh'].forEach(id=>{
+    const el=document.getElementById(id); if(el){el.value=''; el.classList.remove('computed');}
   });
+  inp.weight().value='70';
+  hideError(); updateBadges(null);
+  document.getElementById('results').classList.remove('visible');
+  lastPaceSec=null; lastDist=null; lastTimeSec=null;
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e=>{ if(e.key==='Enter') calculate(); });
+[document.getElementById('time-s'), document.getElementById('pace-s')].forEach(el=>{
+  el.addEventListener('blur',()=>{ if(el.value!=='' && el.value.length===1) el.value='0'+el.value; });
+});
 </script>
 </body>
 </html>
