@@ -610,7 +610,11 @@
     return val(inputs.timeH) !== null || val(inputs.timeM) !== null || val(inputs.timeS) !== null;
   }
   function hasPace() {
-    return val(inputs.paceM) !== null || val(inputs.paceS) !== null;
+    // Pace is "provided" only if at least one field is filled AND the total is > 0
+    const m = val(inputs.paceM);
+    const s = val(inputs.paceS);
+    if (m === null && s === null) return false;
+    return (m || 0) * 60 + (s || 0) > 0;
   }
 
   function getTimeSeconds() {
@@ -622,22 +626,31 @@
   }
 
   function getPaceSeconds() {
-    const m = val(inputs.paceM) || 0;
-    const s = val(inputs.paceS) || 0;
     if (!hasPace()) return null;
-    return m * 60 + s;
+    const m = val(inputs.paceM) || 0;
+    // Bug fix: clamp seconds to 0–59; values like 75 would silently corrupt pace
+    const sRaw = val(inputs.paceS) || 0;
+    if (sRaw > 59) {
+      showError('Pace seconds must be between 0 and 59.');
+      return null;
+    }
+    return m * 60 + sRaw;
   }
 
   function formatTime(totalSeconds) {
+    // Bug fix: use Math.floor on seconds to avoid 60s rollover from floating point
+    totalSeconds = Math.round(totalSeconds);
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = Math.round(totalSeconds % 60);
+    const s = totalSeconds % 60;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
   function formatPace(paceSeconds) {
+    // Bug fix: round total seconds first, THEN split — prevents "4:60" display
+    paceSeconds = Math.round(paceSeconds);
     const m = Math.floor(paceSeconds / 60);
-    const s = Math.round(paceSeconds % 60);
+    const s = paceSeconds % 60;
     return `${m}:${String(s).padStart(2,'0')}`;
   }
 
@@ -706,6 +719,7 @@
       // Calculate time
       dist = val(inputs.dist);
       paceSec = getPaceSeconds();
+      if (paceSec === null) return; // validation error already shown
       if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
       timeSec = dist * paceSec;
       const h = Math.floor(timeSec / 3600);
@@ -722,6 +736,7 @@
       // Calculate distance
       timeSec = getTimeSeconds();
       paceSec = getPaceSeconds();
+      if (paceSec === null) return; // validation error already shown
       if (paceSec <= 0) { showError('Pace must be greater than 0.'); return; }
       dist = timeSec / paceSec;
       inputs.dist.value = dist.toFixed(2);
@@ -743,9 +758,11 @@
     }
 
     // Now render results
-    dist = dist || val(inputs.dist);
-    timeSec = timeSec || getTimeSeconds();
-    paceSec = paceSec || getPaceSeconds();
+    dist = dist ?? val(inputs.dist);
+    timeSec = timeSec ?? getTimeSeconds();
+    paceSec = paceSec ?? getPaceSeconds();
+
+    if (!paceSec || paceSec <= 0) { showError('Something went wrong — pace is invalid.'); return; }
 
     const speedKmh = 3600 / paceSec;
 
