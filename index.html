@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pace Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #14171f;
+    --surface2: #1c2030;
+    --border: #252a38;
+    --accent: #e8ff47;
+    --accent2: #47c8ff;
+    --text: #f0f2f8;
+    --muted: #5a6282;
+    --error: #ff6b6b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232,255,71,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
+  }
+
+  .container {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-top: 16px;
+  }
+
+  .eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    opacity: 0.9;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(52px, 12vw, 72px);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  h1 span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .subtitle {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232,255,71,0.3), transparent);
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  .input-group:last-of-type { margin-bottom: 0; }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: rgba(232,255,71,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(232,255,71,0.2);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .badge.visible { opacity: 1; }
+
+  .fields-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .field-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .field-wrap .unit {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  input[type="number"],
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    padding: 14px 8px 24px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,255,71,0.1);
+    background: #1a1d27;
+  }
+
+  input.computed {
+    border-color: rgba(71,200,255,0.4);
+    background: rgba(71,200,255,0.05);
+    color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(71,200,255,0.07);
+  }
+
+  input.has-value:not(.computed) {
+    border-color: rgba(232,255,71,0.3);
+  }
+
+  input::placeholder { color: var(--muted); font-weight: 300; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .divider-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Distance input */
+  .distance-wrap {
+    position: relative;
+  }
+
+  .distance-wrap input {
+    padding: 20px 60px 20px 20px;
+    font-size: 36px;
+    text-align: left;
+    height: 76px;
+  }
+
+  .distance-unit {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    border-radius: 12px;
+    padding: 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    margin-top: 8px;
+  }
+
+  .btn:hover {
+    background: #f5ff80;
+    box-shadow: 0 8px 32px rgba(232,255,71,0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    margin-top: 8px;
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface2);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .error-msg {
+    background: rgba(255,107,107,0.1);
+    border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--error);
+    margin-top: 12px;
+    display: none;
+  }
+
+  .results-section {
+    display: none;
+  }
+
+  .results-section.visible {
+    display: block;
+    animation: fadeUp 0.4s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-box.highlight {
+    border-color: rgba(232,255,71,0.3);
+    background: rgba(232,255,71,0.04);
+  }
+
+  .stat-box.highlight::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-box.highlight .stat-value { color: var(--accent); }
+
+  .stat-unit {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .races-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .race-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .race-row:last-child { border-bottom: none; }
+  .race-row:hover { background: var(--surface2); }
+
+  .race-info { display: flex; align-items: center; gap: 12px; }
+
+  .race-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .race-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .race-dist {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .race-time {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 1px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Running Tool</div>
+    <h1>Pace<span>Calc</span></h1>
+    <p class="subtitle">Enter any two values — the third is calculated for you</p>
+  </header>
+
+  <!-- INPUT CARD -->
+  <div class="card">
+
+    <!-- DISTANCE -->
+    <div class="input-group">
+      <div class="label-row">
+        <label>Distance</label>
+        <span class="badge" id="badge-distance">calculated</span>
+      </div>
+      <div class="distance-wrap">
+        <input type="number" id="dist" placeholder="0.00" min="0" step="0.01">
+        <span class="distance-unit">km</span>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
+
+    <!-- TIME -->
+    <div class="input-group">
+      <div class="label-row">
+        <label>Time</label>
+        <span class="badge" id="badge-time">calculated</span>
+      </div>
+      <div class="fields-row">
+        <div class="field-wrap">
+          <input type="number" id="time-h" placeholder="00" min="0" max="99">
+          <span class="unit">hh</span>
+        </div>
+        <div class="field-wrap">
+          <input type="number" id="time-m" placeholder="00" min="0" max="59">
+          <span class="unit">mm</span>
+        </div>
+        <div class="field-wrap">
+          <input type="number" id="time-s" placeholder="00" min="0" max="59">
+          <span class="unit">ss</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-text">+</div><div class="divider-line"></div></div>
+
+    <!-- PACE -->
+    <div class="input-group">
+      <div class="label-row">
+        <label>Pace</label>
+        <span class="badge" id="badge-pace">calculated</span>
+      </div>
+      <div class="fields-row">
+        <div class="field-wrap">
+          <input type="number" id="pace-m" placeholder="00" min="0" max="99">
+          <span class="unit">min</span>
+        </div>
+        <div class="field-wrap">
+          <input type="number" id="pace-s" placeholder="00" min="0" max="59">
+          <span class="unit">sec</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-msg" class="error-msg"></div>
+
+    <button class="btn" onclick="calculate()">Calculate</button>
+    <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section" id="results">
+
+    <p class="section-label" style="margin-top:8px;">Summary</p>
+
+    <div class="stats-grid">
+      <div class="stat-box highlight">
+        <div class="stat-label">Pace</div>
+        <div class="stat-value" id="res-pace">—</div>
+        <div class="stat-unit">min / km</div>
+      </div>
+      <div class="stat-box highlight">
+        <div class="stat-label">Speed</div>
+        <div class="stat-value" id="res-speed">—</div>
+        <div class="stat-unit">km / h</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Distance</div>
+        <div class="stat-value" id="res-dist">—</div>
+        <div class="stat-unit">kilometers</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total Time</div>
+        <div class="stat-value" id="res-time">—</div>
+        <div class="stat-unit">hh : mm : ss</div>
+      </div>
+    </div>
+
+    <p class="section-label">Race Predictions</p>
+
+    <div class="races-card">
+      <div class="race-row">
+        <div class="race-info">
+          <div class="race-icon">🏃</div>
+          <div>
+            <div class="race-name">5K</div>
+            <div class="race-dist">5.0 km</div>
+          </div>
+        </div>
+        <div class="race-time" id="pred-5k">—</div>
+      </div>
+      <div class="race-row">
+        <div class="race-info">
+          <div class="race-icon">🏃</div>
+          <div>
+            <div class="race-name">10K</div>
+            <div class="race-dist">10.0 km</div>
+          </div>
+        </div>
+        <div class="race-time" id="pred-10k">—</div>
+      </div>
+      <div class="race-row">
+        <div class="race-info">
+          <div class="race-icon">🥈</div>
+          <div>
+            <div class="race-name">Half Marathon</div>
+            <div class="race-dist">21.1 km</div>
+          </div>
+        </div>
+        <div class="race-time" id="pred-half">—</div>
+      </div>
+      <div class="race-row">
+        <div class="race-info">
+          <div class="race-icon">🏅</div>
+          <div>
+            <div class="race-name">Marathon</div>
+            <div class="race-dist">42.2 km</div>
+          </div>
+        </div>
+        <div class="race-time" id="pred-full">—</div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Keep moving forward ↑</footer>
+
+</div>
+
+<script>
+  const inputs = {
+    dist: document.getElementById('dist'),
+    timeH: document.getElementById('time-h'),
+    timeM: document.getElementById('time-m'),
+    timeS: document.getElementById('time-s'),
+    paceM: document.getElementById('pace-m'),
+    paceS: document.getElementById('pace-s'),
+  };
+
+  // Track computed fields for styling
+  let computedFields = [];
+
+  function val(el) {
+    const v = parseFloat(el.value);
+    return isNaN(v) ? null : v;
+  }
+
+  function hasDistance() { return val(inputs.dist) !== null; }
+  function hasTime() {
+    return val(inputs.timeH) !== null || val(inputs.timeM) !== null || val(inputs.timeS) !== null;
+  }
+  function hasPace() {
+    return val(inputs.paceM) !== null || val(inputs.paceS) !== null;
+  }
+
+  function getTimeSeconds() {
+    const h = val(inputs.timeH) || 0;
+    const m = val(inputs.timeM) || 0;
+    const s = val(inputs.timeS) || 0;
+    if (!hasTime()) return null;
+    return h * 3600 + m * 60 + s;
+  }
+
+  function getPaceSeconds() {
+    const m = val(inputs.paceM) || 0;
+    const s = val(inputs.paceS) || 0;
+    if (!hasPace()) return null;
+    return m * 60 + s;
+  }
+
+  function formatTime(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.round(totalSeconds % 60);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  function formatPace(paceSeconds) {
+    const m = Math.floor(paceSeconds / 60);
+    const s = Math.round(paceSeconds % 60);
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  function setFieldValue(field, value, isComputed) {
+    field.value = value;
+    if (isComputed) {
+      field.classList.add('computed');
+      field.classList.remove('has-value');
+    } else {
+      field.classList.add('has-value');
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  function clearComputedStyles() {
+    Object.values(inputs).forEach(el => el.classList.remove('computed'));
+  }
+
+  function updateBadges(calculated) {
+    ['distance','time','pace'].forEach(k => {
+      const badge = document.getElementById(`badge-${k}`);
+      badge.classList.toggle('visible', calculated === k);
+    });
+  }
+
+  function calculate() {
+    hideError();
+    clearComputedStyles();
+
+    const d = hasDistance();
+    const t = hasTime();
+    const p = hasPace();
+
+    const provided = [d, t, p].filter(Boolean).length;
+
+    if (provided < 2) {
+      showError('Please fill in at least two of the three fields (Distance, Time, Pace).');
+      return;
+    }
+
+    let dist, timeSec, paceSec;
+
+    if (d && t && !p) {
+      // Calculate pace
+      dist = val(inputs.dist);
+      timeSec = getTimeSeconds();
+      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
+      paceSec = timeSec / dist;
+      const pm = Math.floor(paceSec / 60);
+      const ps = Math.round(paceSec % 60);
+      inputs.paceM.value = pm;
+      inputs.paceS.value = String(ps).padStart(2,'0');
+      inputs.paceM.classList.add('computed');
+      inputs.paceS.classList.add('computed');
+      updateBadges('pace');
+    } else if (d && p && !t) {
+      // Calculate time
+      dist = val(inputs.dist);
+      paceSec = getPaceSeconds();
+      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
+      timeSec = dist * paceSec;
+      const h = Math.floor(timeSec / 3600);
+      const m = Math.floor((timeSec % 3600) / 60);
+      const s = Math.round(timeSec % 60);
+      inputs.timeH.value = h;
+      inputs.timeM.value = String(m).padStart(2,'0');
+      inputs.timeS.value = String(s).padStart(2,'0');
+      inputs.timeH.classList.add('computed');
+      inputs.timeM.classList.add('computed');
+      inputs.timeS.classList.add('computed');
+      updateBadges('time');
+    } else if (t && p && !d) {
+      // Calculate distance
+      timeSec = getTimeSeconds();
+      paceSec = getPaceSeconds();
+      if (paceSec <= 0) { showError('Pace must be greater than 0.'); return; }
+      dist = timeSec / paceSec;
+      inputs.dist.value = dist.toFixed(2);
+      inputs.dist.classList.add('computed');
+      updateBadges('distance');
+    } else if (d && t && p) {
+      // All three provided — use dist + time, recalculate pace
+      dist = val(inputs.dist);
+      timeSec = getTimeSeconds();
+      if (dist <= 0) { showError('Distance must be greater than 0.'); return; }
+      paceSec = timeSec / dist;
+      const pm = Math.floor(paceSec / 60);
+      const ps = Math.round(paceSec % 60);
+      inputs.paceM.value = pm;
+      inputs.paceS.value = String(ps).padStart(2,'0');
+      inputs.paceM.classList.add('computed');
+      inputs.paceS.classList.add('computed');
+      updateBadges('pace');
+    }
+
+    // Now render results
+    dist = dist || val(inputs.dist);
+    timeSec = timeSec || getTimeSeconds();
+    paceSec = paceSec || getPaceSeconds();
+
+    const speedKmh = 3600 / paceSec;
+
+    document.getElementById('res-pace').textContent = formatPace(paceSec);
+    document.getElementById('res-speed').textContent = speedKmh.toFixed(2);
+    document.getElementById('res-dist').textContent = dist.toFixed(2);
+    document.getElementById('res-time').textContent = formatTime(timeSec);
+
+    // Race predictions
+    const races = [
+      { id: 'pred-5k',   km: 5.0 },
+      { id: 'pred-10k',  km: 10.0 },
+      { id: 'pred-half', km: 21.1 },
+      { id: 'pred-full', km: 42.2 },
+    ];
+
+    races.forEach(r => {
+      const t = r.km * paceSec;
+      document.getElementById(r.id).textContent = formatTime(t);
+    });
+
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function clearAll() {
+    Object.values(inputs).forEach(el => {
+      el.value = '';
+      el.classList.remove('computed', 'has-value');
+    });
+    hideError();
+    updateBadges(null);
+    document.getElementById('results').classList.remove('visible');
+  }
+
+  // Allow Enter key to calculate
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+
+  // Auto-pad seconds on blur
+  [inputs.timeS, inputs.paceS].forEach(el => {
+    el.addEventListener('blur', () => {
+      if (el.value !== '' && el.value.length === 1) {
+        el.value = '0' + el.value;
+      }
+    });
+  });
+</script>
+</body>
+</html>
